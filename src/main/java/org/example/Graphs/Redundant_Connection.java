@@ -7,51 +7,46 @@ import java.util.Map;
 
 public class Redundant_Connection {
 
-    public static int[] findRedundantConnection(int[][] edges) {
+    public int[] findRedundantConnection(int[][] edges) {
+
+        int n = edges.length;
+
+        Map<Integer,List<Integer>> graph = new HashMap<>();
 
 
-        int m=edges.length;
-        int n=edges[0].length;
+        for (int[] edge : edges) {
 
-        //create graph
-        HashMap<Integer,ArrayList<Integer>> map=new HashMap<>();
-
-        for(int edge[]: edges){//array for each in array
-            //if it not  contain the key then it add the value
-            if(map.containsKey(edge[0])==false){
-                map.put(edge[0],new ArrayList<>());
-            }
-
-            if(map.containsKey(edge[1])==false){
-                map.put(edge[1],new ArrayList<>());
-            }
-
-            //add edge so making connection between vertics
-            //alse graph[u].add(v) in arraylist
-            map.get(edge[0]).add(edge[1]);
-            map.get(edge[1]).add(edge[0]);
-            boolean visited[] =new boolean[m+1];
-
-
-            if(dfs(edge[0],-1,map,visited)){
+            boolean[] visited = new boolean[n+1];   //reinitializing the `visited` array before we start exploring again
+/*
+Checking if there is already a path between the two nodes before adding an edge, this way we can identify the additional edge that needs to be removed.
+*/
+            if (dfs(graph, edge[0], edge[1], visited)) {
                 return edge;
             }
+
+            graph.computeIfAbsent(edge[0],val->new ArrayList<>()).add(edge[1]);
+            graph.computeIfAbsent(edge[1],val->new ArrayList<>()).add(edge[0]);
+
         }
-        return new int[] {edges[0][0]};//null
+
+        return new int[0];          // returning empty list
     }
 
-    public static boolean dfs(int src,int parent,HashMap<Integer,ArrayList<Integer>> adj,boolean[] visited){
-        visited[src]=true;
+    private boolean dfs(Map<Integer,List<Integer>>  graph, Integer currNode, Integer targetNode, boolean[] visited) {
 
-        for(int i : adj.get(src)){
-            if(visited[i]==false){
-                dfs(i,src,adj,visited);
-            }
-            else if(visited[i]==true && i!=parent){
-                return true;//means single or two element
+        if (currNode.equals(targetNode)) {               // if src(u) reaches dest(v), then stop thr DFS
+            return true;
+        }
+
+        visited[currNode] = true;
+
+        List<Integer>nodes=graph.getOrDefault(currNode,new ArrayList<>());
+        for (Integer next : nodes) {
+            if (!visited[next]&&dfs(graph, next, targetNode, visited)) {
+                return true;
             }
         }
-        return false;//otherwise false
+        return false;
     }
 }
 
